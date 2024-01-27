@@ -17,7 +17,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
     //Step 1:
     const {fullName, email, username, password} = req.body
-    console.log("email: ", email);
+    //console.log("email: ", email);
 
     //Step 2: advanced if condition for checking all values at once
     if (
@@ -28,17 +28,24 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     //Step3:
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{username}, {email}]
     })
 
     if(existedUser){
         throw new ApiError(409, "User with email or username already exits")
     }
+    //console.log(req.files);
 
     //Step 4:
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0 ) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required")
@@ -53,7 +60,7 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     //Step 6:
-    const user = awaitUser.create({
+    const user = await User.create({
         fullName,
         avatar: avatar.url,
         coverImage: coverImage?.url || "",
@@ -68,7 +75,7 @@ const registerUser = asyncHandler( async (req, res) => {
     )
 
     //Step: 8
-    if (createdUser) {
+    if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user")
     }
 
