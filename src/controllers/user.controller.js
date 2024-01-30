@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -167,8 +168,8 @@ const logoutUser = asyncHandler(async(req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1 //this removes the field from the document
             }
         },
         {
@@ -335,6 +336,8 @@ const updateUserCoverImage = asyncHandler(async(req,res) =>
         throw new ApiError(400, "Cover file is missing")
     }
 
+    //TODO: delete old image - assignment
+
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if (!coverImage.url) {
@@ -362,6 +365,8 @@ const updateUserCoverImage = asyncHandler(async(req,res) =>
     )
 
 })
+
+//User channel profile
 
 const getUserChannelProfile = asyncHandler(async(req,res) => {
     const {username} = req.params
@@ -426,7 +431,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
             }
         }
     ])
-    console.log(channel);
+    // console.log(channel);
 
     if (!channel?.length) {
         throw new ApiError(404, "Channel does not exist")
@@ -499,7 +504,9 @@ const getWatchHistory = asyncHandler(async(req, res) => {
 
 export {
     changeCurrentPassword,
-    getCurrentUser, getUserChannelProfile, getUserChannelProfile, getWatchHistory, getWatchHistory, loginUser,
+    getCurrentUser,
+    getUserChannelProfile,
+    getWatchHistory, loginUser,
     logoutUser,
     refreshAccessToken,
     registerUser,
